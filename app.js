@@ -1,5 +1,6 @@
 const express = require('express');
 const app =express();
+require('dotenv').config();
 const bodyParser=require('body-parser');
 const mongoose = require('mongoose');
 const encrypt = require('mongoose-encryption');
@@ -8,6 +9,7 @@ const conString='mongodb://localhost:27017/messageDB';
 app.set('view engine','ejs');
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended:true}));
+
 
 //DataBase connection Code //
 mongoose.connect(conString, {useUnifiedTopology: true,useNewUrlParser: true});
@@ -36,7 +38,7 @@ const registerSchema = new mongoose.Schema({
 });
 
 const secretString='this is our secret ke for encryption';
-registerSchema.plugin(encrypt,{secret: secretString,encryptedFields: ['password']}); //encrypt is the const variable we have declared earliar
+registerSchema.plugin(encrypt,{secret: process.env.DB_SECRETSTRING,encryptedFields: ['password']}); //encrypt is the const variable we have declared earliar
 
 const Registermodel=mongoose.model('user',registerSchema); //user is collection name
 
