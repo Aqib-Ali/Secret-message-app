@@ -5,6 +5,7 @@ const bodyParser=require('body-parser');
 const mongoose = require('mongoose');
 const encrypt = require('mongoose-encryption');
 const conString='mongodb://localhost:27017/messageDB';
+const md5 = require('md5');
 
 app.set('view engine','ejs');
 app.use(express.static("public"));
@@ -37,8 +38,8 @@ const registerSchema = new mongoose.Schema({
     // whatever else
 });
 
-const secretString='this is our secret ke for encryption';
-registerSchema.plugin(encrypt,{secret: process.env.DB_SECRETSTRING,encryptedFields: ['password']}); //encrypt is the const variable we have declared earliar
+
+//registerSchema.plugin(encrypt,{secret: process.env.DB_SECRETSTRING,encryptedFields: ['password']}); //encrypt is the const variable we have declared earliar
 
 const Registermodel=mongoose.model('user',registerSchema); //user is collection name
 
@@ -63,7 +64,7 @@ app.get('/logout',function(req,res) {
 app.post('/register',function(req,res) {
         userobj = new Registermodel({
                   email:req.body.username,
-                  password:req.body.password
+                  password:md5(req.body.password)
                   });
 
         userobj.save(function(err)
@@ -92,7 +93,7 @@ app.post('/login',function(req,res) {
 						 {
 										 if(founduser)
 										 {
-												 if(founduser.password===req.body.password)
+												 if(founduser.password===md5(req.body.password))
 												 {
 													 res.render('secrets');
 												 }
