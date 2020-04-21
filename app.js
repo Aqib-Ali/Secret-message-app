@@ -5,9 +5,12 @@ const bodyParser=require('body-parser');
 const mongoose = require('mongoose');
 const encrypt = require('mongoose-encryption');
 const conString='mongodb://localhost:27017/messageDB';
-const md5 = require('md5');
+//const md5 = require('md5');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 app.set('view engine','ejs');
+
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended:true}));
 
@@ -62,21 +65,33 @@ app.get('/logout',function(req,res) {
 
 // Register  code
 app.post('/register',function(req,res) {
-        userobj = new Registermodel({
-                  email:req.body.username,
-                  password:md5(req.body.password)
-                  });
 
-        userobj.save(function(err)
-      {
-          if(!err)
-          {
-          res.render('login');
-          }
-          else {
-            console.log('error'+err);
-          }
-      });
+
+				bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+					    // Store hash in your password DB.
+							if(!err)
+							{
+
+
+								const	userobj = new Registermodel({
+					                  email:req.body.username,
+					                  password:hash
+					                  });
+
+									userobj.save(function(err)
+								{
+										if(!err)
+										{
+										res.render('login');
+										}
+										else {
+											console.log('error'+err);
+										}
+								});
+					 }
+					});
+
+
 
 
 });
@@ -93,20 +108,22 @@ app.post('/login',function(req,res) {
 						 {
 										 if(founduser)
 										 {
-												 if(founduser.password===md5(req.body.password))
-												 {
-													 res.render('secrets');
-												 }
-												 else {
-													 res.redirect('login');
-												 }
+													 bcrypt.compare(req.body.password, founduser.password, function(err, result) {
+		    								 		if(result === true)
+														{
+															 res.render('secrets');
+														}
+														else {
+															res.redirect('login');
+														}
+
+													});
 							 		 		}
 											else {
 													res.redirect('login');
 											}
 						 }
           });
-
 });
 
 
